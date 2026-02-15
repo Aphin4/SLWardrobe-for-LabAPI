@@ -43,7 +43,7 @@ Thank you for your interest in contributing! Please read through this guide befo
 
 ## Wiki Contributions
 
-- Wiki edits are managed by authorized collaborators. See the [Collaborators](Collaborators) page for details.
+- Wiki edits are managed by authorized collaborators. See the [Collaborators](https://github.com/ChochoZagorski/SLWardrobe/wiki/Collaborators) page for details.
 - If you'd like to suggest a documentation change, open an issue or reach out to a wiki maintainer.
 
 ---
