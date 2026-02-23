@@ -1,16 +1,15 @@
 # SLWardrobe
-![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/ChochoZagorski/SLWardrobe/total) ![GitHub Release](https://img.shields.io/github/v/release/ChochoZagorski/SLWardrobe)
 
 SLWardrobe is a plugin made with the purpose of giving players to wear schematics made with ProjectMER to enhance Roleplay and add a new way to experience the game SCP: Secret Laboratory.
 It offers the ability for anyone to create "Suits" that could be worn by players.
 
 ### Dependencies
- - SCP: Secret Laboratory 14.1.1
- - Exiled 9.6.1
+ - SCP: Secret Laboratory 14.2.5
+ - LabApi 1.1.5
  - ProjectMER (and its Dependencies)
 
 ### Installation
-The installation is very simple. All you need to do is go to ``%AppData%\EXILED\Plugins`` (``~/.config/EXILED/Plugins`` on Linux) and drop the ``SLWardrobe.dll``.
+The installation is very simple. All you need to do is go to ``%AppData%\SCP Secret Laboratory\LabAPI\plugins\global(or port of your server)`` and drop the ``SLWardrobe.dll``.
 
 ### Commands
 Currently all commands require access to the Remote Admin Panel
@@ -20,7 +19,7 @@ Currently all commands require access to the Remote Admin Panel
  - ``removesuit (player id)``
 
 ### Config
-The config file is auto-generated and is located at: ``%AppData%\EXILED\Configs\Plugins\s_l_wardrobe\(ServerPortHere).yml`` (``~/.config/EXILED/Configs/Plugins/s_l_wardrobe/(ServerPortHere).yml`` on Linux)
+The config file is auto-generated and is located at: ``%AppData%\SCP Secret Laboratory\LabAPI\configs\(serverport, 7777 usually)\SLWardrobe\config.yml``
 
 For more information please check the wiki: https://github.com/ChochoZagorski/SLWardrobe/wiki/Configs
 
