@@ -1,7 +1,7 @@
 using System;
 using CommandSystem;
-using Exiled.API.Features;
-using Exiled.Permissions.Extensions;
+using LabApi.Features.Wrappers;
+using LabApi.Features.Permissions;
 
 namespace SLWardrobe.Commands
 {
@@ -14,7 +14,7 @@ namespace SLWardrobe.Commands
         
         public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
         {
-            if (!sender.CheckPermission("slwardrobe.suits"))
+            if (!sender.HasPermissions("slwardrobe.suits"))
             {
                 response = "You can't remove suits, you don't have \"slwardrobe.suits\" permission.";
                 return false;
