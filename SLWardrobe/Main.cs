@@ -1,48 +1,56 @@
-﻿using System;
+using HarmonyLib;
+using LabApi.Events.Arguments.PlayerEvents;
+using LabApi.Events.Arguments.ServerEvents;
+using LabApi.Events.Handlers;
+using LabApi.Features.Wrappers;
+using LabApi.Loader.Features.Plugins;
+using MEC;
+using PlayerRoles;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using MEC;
 using UnityEngine;
-using PlayerRoles;
-using Exiled.API.Enums;
-using Exiled.API.Features;
+using Logger = LabApi.Features.Console.Logger;
 
 namespace SLWardrobe
 {
     public class SLWardrobe : Plugin<Config>
     {
         public override string Name => "SLWardrobe";
-        public override string Author => "ChochoZagorski";
+        public override string Author => "ChochoZagorski forked by Aphin";
+        public override string Description => "";
+        public override Version RequiredApiVersion => new Version(1, 1, 5, 0);
         public override Version Version => new Version(1, 7, 0 );
-        public override Version RequiredExiledVersion => new Version(9, 6, 1);
         
         public static SLWardrobe Instance { get; private set; }
         private Dictionary<Player, string> playerSuitNames = new Dictionary<Player, string>();
         private static readonly HttpClient HttpClient = new HttpClient();
         private const string VERSION_URL = "https://raw.githubusercontent.com/ChochoZagorski/SLWardrobe/master/version.txt";
-        
-        public override void OnEnabled()
+        private Harmony _harmony;
+
+        public override void Enable()
         {
             Instance = this;
-            Exiled.Events.Handlers.Player.ChangingRole += OnChangingRole;
-            Exiled.Events.Handlers.Player.Left += OnPlayerLeft;
-            Exiled.Events.Handlers.Server.RoundEnded += OnRoundEnded;
-            Exiled.Events.Handlers.Player.Died += OnPlayerDied;
+            PlayerEvents.ChangingRole += OnChangingRole;
+            PlayerEvents.Left += OnPlayerLeft;
+            ServerEvents.RoundEnded += OnRoundEnded;
+            PlayerEvents.Death += OnPlayerDeath;
             Task.Run(async () => await CheckForUpdates());
-            base.OnEnabled();
-            
+            _harmony = new Harmony("SLWardobe");
+            _harmony.PatchAll();
+
         }
         
-        public override void OnDisabled()
+        public override void Disable()
         {
-            Exiled.Events.Handlers.Player.ChangingRole -= OnChangingRole;
-            Exiled.Events.Handlers.Player.Left -= OnPlayerLeft;
-            Exiled.Events.Handlers.Server.RoundEnded -= OnRoundEnded;
-            Exiled.Events.Handlers.Player.Died -= OnPlayerDied;
+            PlayerEvents.ChangingRole -= OnChangingRole;
+            PlayerEvents.Left -= OnPlayerLeft;
+            ServerEvents.RoundEnded -= OnRoundEnded;
+            PlayerEvents.Death -= OnPlayerDeath;
+            _harmony.UnpatchAll("SLWardobe");
             Instance = null;
-            base.OnDisabled();
         }
         
         private async Task CheckForUpdates()
@@ -59,27 +67,27 @@ namespace SLWardrobe
                 {
                     if (latest > current)
                     {
-                        Log.Warn($"[SLWardrobe] A new version is available! Current: {Version} | Latest: {latestVersion}");
-                        Log.Warn("[SLWardrobe] Download at: https://github.com/ChochoZagorski/SLWardrobe/releases/latest");
+                        Logger.Warn($"[SLWardrobe] A new version is available! Current: {Version} | Latest: {latestVersion}");
+                        Logger.Warn("[SLWardrobe] Download at: https://github.com/ChochoZagorski/SLWardrobe/releases/latest");
                     }
                     else if (latest < current)
                     {
-                        Log.Info($"[SLWardrobe] There is a... Wait a minute, how do you have a future version? Anyways your version: {Version} | Latest: {latestVersion}");
-                        Log.Info("[SLWardrobe] Seriously how?");
+                        Logger.Info($"[SLWardrobe] There is a... Wait a minute, how do you have a future version? Anyways your version: {Version} | Latest: {latestVersion}");
+                        Logger.Info("[SLWardrobe] Seriously how?");
                     }
                     else
                     {
-                        Log.Info($"[SLWardrobe] You are running the latest version ({Version})");
+                        Logger.Info($"[SLWardrobe] You are running the latest version ({Version})");
                     }
                 }
             }
             catch (Exception ex)
             {
-                Log.Debug($"[SLWardrobe] Could not check for updates: {ex.Message}");
+                Logger.Debug($"[SLWardrobe] Could not check for updates: {ex.Message}");
             }
         }
         
-        private void OnChangingRole(Exiled.Events.EventArgs.Player.ChangingRoleEventArgs ev)
+        private void OnChangingRole(PlayerChangingRoleEventArgs ev)
         {
             if (ev.NewRole == RoleTypeId.None || ev.NewRole == RoleTypeId.Spectator)
             {
@@ -88,20 +96,21 @@ namespace SLWardrobe
             }
         }
         
-        private void OnPlayerDied(Exiled.Events.EventArgs.Player.DiedEventArgs ev)
+        private void OnPlayerDeath(PlayerDeathEventArgs ev)
         {
             SuitBinder.RemoveSuit(ev.Player);
 			SuitBinder.SetPlayerInvisibility(ev.Player, false);
         }
         
-        private void OnPlayerLeft(Exiled.Events.EventArgs.Player.LeftEventArgs ev)
+        private void OnPlayerLeft(PlayerLeftEventArgs ev)
         {
             SuitBinder.RemoveSuit(ev.Player);
 			SuitBinder.SetPlayerInvisibility(ev.Player, false);
             playerSuitNames.Remove(ev.Player);
+            GhostModeManager.RemovePlayer(ev.Player.ReferenceHub);
         }
         
-        private void OnRoundEnded(Exiled.Events.EventArgs.Server.RoundEndedEventArgs ev)
+        private void OnRoundEnded(RoundEndedEventArgs ev)
         {
             foreach (var player in Player.List)
             {
@@ -133,7 +142,7 @@ namespace SLWardrobe
             }
             else
             {
-                Log.Warn($"Unknown suit: {suitName}. Please define it in the config.");
+                Logger.Warn($"Unknown suit: {suitName}. Please define it in the config.");
                 yield break;
             }
 
