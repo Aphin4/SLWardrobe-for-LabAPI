@@ -1,13 +1,14 @@
 using System;
 using System.Reflection;
 using UnityEngine;
-using Exiled.API.Features;
+using LabApi.Features;
 using System.Collections.Generic;
 using Mirror;
 using AdminToys;
-using Exiled.API.Features.Toys;
+using LabApi.Features.Wrappers;
+using Logger = LabApi.Features.Console.Logger;
 using ProjectMER.Features;
-using Exiled.API.Features.Roles;
+using PlayerRoles.FirstPersonControl;
 
 namespace SLWardrobe
 {
@@ -36,7 +37,7 @@ namespace SLWardrobe
             {
                 if (!boneMap.ContainsKey(binding.BoneName))
                 {
-                    Log.Warn($"Bone {binding.BoneName} not found on player");
+                    Logger.Warn($"Bone {binding.BoneName} not found on player");
                     continue;
                 }
                 
@@ -58,7 +59,7 @@ namespace SLWardrobe
                     
                     if (suitPart == null)
                     {
-                        Log.Error($"Failed to spawn suit part {binding.SchematicName}");
+                        Logger.Error($"Failed to spawn suit part {binding.SchematicName}");
                         continue;
                     }
 
@@ -82,25 +83,25 @@ namespace SLWardrobe
                                 if (HideForConnectionMethod != null)
                                 {
                                     HideForConnectionMethod.Invoke(null, new object[] { netId, player.Connection });
-                                    Log.Debug($"Hid {binding.SchematicName} from {player.Nickname}");
+                                    Logger.Debug($"Hid {binding.SchematicName} from {player.Nickname}");
                                 }
                                 else
                                 {
-                                    Log.Error("HideForConnection method not found via reflection!");
+                                    Logger.Error("HideForConnection method not found via reflection!");
                                 }
                             }
                         }
                         catch (Exception ex)
                         {
-                            Log.Error($"Failed to hide {binding.SchematicName} from wearer: {ex.Message}");
+                            Logger.Error($"Failed to hide {binding.SchematicName} from wearer: {ex.Message}");
                         }
                     }
                     
-                    Log.Debug($"Created suit part {binding.SchematicName} for bone {binding.BoneName}");
+                    Logger.Debug($"Created suit part {binding.SchematicName} for bone {binding.BoneName}");
                 }
                 catch (System.Exception ex)
                 {
-                    Log.Error($"Error spawning suit part {binding.SchematicName}: {ex.Message}");
+                    Logger.Error($"Error spawning suit part {binding.SchematicName}: {ex.Message}");
                 }
             }
             
@@ -112,7 +113,7 @@ namespace SLWardrobe
                 var updater = player.GameObject.AddComponent<SuitUpdater>();
                 updater.Initialize(player, SLWardrobe.Instance.Config.SuitUpdateInterval);
                 
-                Log.Debug($"Applied suit with {suitData.Parts.Count} parts to {player.Nickname}");
+                Logger.Debug($"Applied suit with {suitData.Parts.Count} parts to {player.Nickname}");
             }
         }
         
@@ -141,7 +142,7 @@ namespace SLWardrobe
                 }
                 catch (Exception ex)
                 {
-                    Log.Debug($"Could not set MovementSmoothing: {ex.Message}");
+                    Logger.Debug($"Could not set MovementSmoothing: {ex.Message}");
                 }
             }
 
@@ -199,7 +200,7 @@ namespace SLWardrobe
                 
                 activeSuits.Remove(player);
                 
-                Log.Debug($"Removed suit from {player.Nickname}");
+                Logger.Debug($"Removed suit from {player.Nickname}");
             }
         }
         
@@ -210,15 +211,12 @@ namespace SLWardrobe
 
         public static void SetPlayerInvisibility(Player player, bool invisible)
         {
-            if (player.Role is FpcRole fpcRole)
-            {
-                fpcRole.IsInvisible = invisible;
-                
-                if (invisible)
-                    Log.Debug($"Made {player.Nickname} invisible");
-                else
-                    Log.Debug($"Made {player.Nickname} visible");
-            }
+            GhostModeManager.SetInvisible(player, invisible);
+
+            if (invisible)
+                Logger.Debug($"Made {player.Nickname} invisible");
+            else
+                Logger.Debug($"Made {player.Nickname} visible");
         }
     }
     
